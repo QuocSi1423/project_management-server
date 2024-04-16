@@ -1,8 +1,6 @@
 <?php
 namespace Storage;
-
-use Entity\UserAccount;
-use Entity\UserInformation;
+use Entity\Member;
 use Storage\IWorkspaceStorage;
 use Storage\PDOManager;
 use Entity\Workspace;
@@ -73,7 +71,7 @@ class WorkspaceStorage implements IWorkspaceStorage{
       $stmt->execute([$workspace_id]);
       $data = $stmt->fetchAll();
       foreach($data as $row){
-        $user = new UserInformation($row['user_id'], $row['first_name'], $row['last_name'], null, $row['avatar_url'], new UserAccount(null, $row['email'], null), $row['color']);
+        $user = new Member($row['user_id'], $row['first_name'], $row['last_name'], $row['email'], $row['role'], $row['avatar_url'], $row['color']);
         $workspace = new Workspace($row['workspace_id'], $row['name'], $row['default_workspaces']);
         $member = new WorkspaceMembership($user, $workspace, $row['role']);
         $array[] = $member;

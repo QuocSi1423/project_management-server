@@ -22,7 +22,8 @@ use Storage\{
   AttachmentStorage,
   CommentStorage,
   TaskFieldStorage,
-  WorkspaceStorage
+  WorkspaceStorage,
+  MembershipStorage
 };
 
 use Service\{
@@ -34,7 +35,8 @@ use Service\{
   UserService,
   AttachmentService,
   CommentService,
-  TaskFieldService,
+    MembershipService,
+    TaskFieldService,
   WorkspaceService
 };
 
@@ -47,7 +49,8 @@ use Controller\{
   UserController,
   AttachmentController,
   CommentController,
-  TaskFieldController,
+    MembershipController,
+    TaskFieldController,
   WorkspaceController
 };
 use LDAP\Result;
@@ -95,6 +98,10 @@ $taskFieldController = new TaskFieldController($taskFieldService);
 $workspaceStore = new WorkspaceStorage($db);
 $workspaceService = new WorkspaceService($workspaceStore);
 $workspaceController = new WorkspaceController($workspaceService);
+
+$membershipStore = new MembershipStorage($db);
+$membershipService = new MembershipService($membershipStore);
+$membershipController = new MembershipController($membershipService);
 
 //middleware
 
@@ -194,6 +201,8 @@ $app->group("/v1/workspaces", function ($workspace) {
         $one_project->group("/tasks", function ($task) {
 
           $task->get("", function (Request $req, Response $res) {
+            global $taskController;
+            return $taskController->GetTasksOfProject($req, $res);
           });
           $task->post("", function (Request $req, Response $res) {
           });
@@ -249,14 +258,26 @@ $app->group("/v1/workspaces", function ($workspace) {
 
         $one_project->group("/boards", function ($board) {
           $board->get("", function (Request $req, Response $res) {
+            global $boardController;
+            return $boardController->GetBoads($req, $res);
           });
           $board->post("", function (Request $req, Response $res) {
+            global $boardController;
+            return $boardController->addBoards($req, $res);
           });
 
           $board->group("/{board_id}", function ($one_board) {
             $one_board->put("", function (Request $req, Response $res) {
+              global $boardController;
+              return $boardController->updateBoard($req, $res);
+            });
+            $one_board->put("/workflow", function (Request $req, Response $res){
+              global $boardController;
+              return $boardController->changeWorkflow($req, $res);
             });
             $one_board->delete("", function (Request $req, Response $res) {
+              global $boardController;
+              return $boardController->deleteBoard($req, $res);
             });
           });
         });
@@ -268,15 +289,19 @@ $app->group("/v1/workspaces", function ($workspace) {
             return $projectController->GetUserOfProject($req, $res);
           });
           $member->post("", function (Request $req, Response $res) {
+            global $membershipController;
+            return $membershipController->CreateMembership($req, $res);
           });
 
-          $member->group("/{member_id}", function ($one_member) {
+          $member->group("/{user_id}", function ($one_member) {
 
             $one_member->get("", function (Request $req, Response $res) {
             });
             $one_member->put("", function (Request $req, Response $res) {
             });
             $one_member->delete("", function (Request $req, Response $res) {
+              global $membershipController;
+              return $membershipController->RemoveMembership($req, $res);
             });
           });
         });

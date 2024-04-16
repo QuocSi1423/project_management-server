@@ -18,14 +18,18 @@ class BoardService{
     return $this->store->getBoardsOfProject($projectID);
   }
 
-  public function  updatePreviuosBoard(String $boardID, ?String $preID, ?String $newpreviousBoardID){
-    $this->store->updatePreviuosBoard($boardID, $preID, $newpreviousBoardID);
+  public function  updatePreviuosBoard(String $boardID, ?String $preID, ?String $newpreviousBoardID, ?String $project_id){
+    $this->store->updatePreviuosBoard($boardID, $preID, $newpreviousBoardID, $project_id);
   }
   public function deleteBoard(String $projectID){
     $this->store->deleteBoard($projectID);
   }
 
-  public function addBoards(Board $board, String $nextBoardID): void{
+  public function updateBoard(?Board $board){
+    $this->store->updateBoard($board);
+  }
+
+  public function addBoards(Board $board, ?String $nextBoardID): void{
    
     if($board->getName() == ""){
       throw new Exception("Board name cannot be blank", 400);

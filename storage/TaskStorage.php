@@ -10,6 +10,8 @@ use DateTime;
 
 use Storage\ITaskStorage;
 use Entity\Task;
+use Entity\UserAccount;
+use Entity\UserInformation;
 
 class TaskStorage implements ITaskStorage
 {
@@ -103,7 +105,7 @@ class TaskStorage implements ITaskStorage
   {
     try {
       $tasks = [];
-      $query = "select * from tasks where project_id = ? and (? is null or status = ?) and (? is null or assigned_user_id = ?) and (? is null or ? <= due_date) and (? is null or ? >= due_date)";
+      $query = "select * from tasks t left join user_informations u on t.assigned_user_id = u.user_id where project_id = ? and (? is null or status = ?) and (? is null or assigned_user_id = ?) and (? is null or ? <= due_date) and (? is null or ? >= due_date)";
       $stmt = $this->db->getConn()->prepare($query);
       $stmt->bindValue(1, $projectID, PDO::PARAM_STR);
       $stmt->bindValue(2, $status, PDO::PARAM_INT);
@@ -123,10 +125,17 @@ class TaskStorage implements ITaskStorage
         $task->setName($row['task_name']);
         $task->setDescription($row['description']);
         $task->setProjectID($row['project_id']);
-        $task->setAssignedUserID($row['assigned_user_id']);
+        $user = new UserInformation();
+        $user->setFirstName($row['first_name']);
+        $user->setLastName($row['last_name']);
+        $user->setUserID($row['user_id']);
+        $user->setColor($row['color']);
+        $user->setAvatarURL($row['avatar_url']);
+        $user->setUserAccount(new UserAccount(null, $row['email'], null));
+        $task->setAssignedUser($user);
         $task->setBoardID($row['board_id']);
         $task->setStartDate(new DateTime($row['start_date']));
-        $task->setEndDate(new DateTime($row['due_date']));
+        $task->setEndDate($row['due_date'] == null ? null : new DateTime($row['due_date']));
         $task->setStatus($row['status']);
 
         $tasks[] = $task;

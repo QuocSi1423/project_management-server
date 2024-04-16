@@ -8,6 +8,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Service\BoardService;
 use Exception;
 use Firebase\JWT\ExpiredException;
+use LDAP\Result;
 use Ramsey\Uuid\Nonstandard\Uuid;
 
 class BoardController
@@ -41,7 +42,7 @@ class BoardController
     $body = $req->getBody()->getContents();
     $data = json_decode($body);
     try {
-      $this->service->updatePreviuosBoard($data->board_id, $data->previous_board_id, $data->new_previous_id);
+      $this->service->updatePreviuosBoard($data->board_id, $data->previous_board_id, $data->new_previous_id, $req->getAttribute('project_id'));
       $boards = new Board($data->board_id, $data->name, $data->project_id, $data->new_previous_id);
 
       $res = $res->withStatus(200);
@@ -92,7 +93,7 @@ class BoardController
       }
 
       if (!isset($data->next_board_id)) {
-        throw new Exception("Next board ID is required", 400);
+        $data->next_board_id = null;
       }
 
       $projectID = $req->getAttribute('project_id');
@@ -115,6 +116,28 @@ class BoardController
         $res = $res->withStatus(500);
         $res->getBody()->write($e->getMessage());
       }
+      return $res;
+    }
+  }
+
+  public function updateBoard(Request $req, Response $res){
+    try{
+      $body = $req->getBody()->getContents();
+      $data = json_decode($body);
+
+      if(!isset($data->board_name)){
+        throw new Exception("Name is required", 400);
+      }
+
+      $board = new Board($req->getAttribute('board_id'), $data->board_name, null, null);
+      $this->service->updateBoard($board);
+
+      $res->withStatus(200);
+      $res->getBody()->write("successfully updated");
+      return $res;
+    }catch(Exception $e){
+      $res = $res->withStatus($e->getCode());
+      $res->getBody()->write($e->getMessage());
       return $res;
     }
   }

@@ -10,7 +10,7 @@ class Task implements JsonSerializable
     private ?string $name;
     private ?string $description;
     private ?string $projectID;
-    private ?string $assignedUserID;
+    private ?UserInformation $assignedUser; // Sửa ở đây
     private ?string $boardID;
     private ?DateTime $startDate;
     private ?DateTime $endDate;
@@ -21,7 +21,7 @@ class Task implements JsonSerializable
         ?string $name = null,
         ?string $description = null,
         ?string $projectID = null,
-        ?string $assignedUserID = null,
+        ?UserInformation $assignedUser = null, // Sửa ở đây
         ?string $boardID = null,
         ?DateTime $startDate = null,
         ?DateTime $endDate = null,
@@ -31,7 +31,7 @@ class Task implements JsonSerializable
         $this->name = $name;
         $this->description = $description;
         $this->projectID = $projectID;
-        $this->assignedUserID = $assignedUserID;
+        $this->assignedUser = $assignedUser; // Sửa ở đây
         $this->boardID = $boardID;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
@@ -40,7 +40,7 @@ class Task implements JsonSerializable
 
     public function toArray(): array
     {
-        return [$this->taskID, $this->name, $this->projectID, $this->assignedUserID, $this->boardID, $this->startDate->format('Y-m-d H:i:s')];
+        return [$this->taskID, $this->name, $this->projectID, $this->assignedUser, $this->boardID, $this->startDate->format('Y-m-d H:i:s')];
     }
 
     // Getters
@@ -64,9 +64,9 @@ class Task implements JsonSerializable
         return $this->projectID;
     }
 
-    public function getAssignedUserID(): ?string
+    public function getAssignedUser(): ?UserInformation // Sửa ở đây
     {
-        return $this->assignedUserID;
+        return $this->assignedUser;
     }
 
     public function getBoardID(): ?string
@@ -110,9 +110,9 @@ class Task implements JsonSerializable
         $this->projectID = $projectID;
     }
 
-    public function setAssignedUserID(?string $assignedUserID): void
+    public function setAssignedUser(?UserInformation $assignedUser): void // Sửa ở đây
     {
-        $this->assignedUserID = $assignedUserID;
+        $this->assignedUser = $assignedUser;
     }
 
     public function setBoardID(?string $boardID): void
@@ -139,13 +139,13 @@ class Task implements JsonSerializable
     public function jsonSerialize()
     {
         return array(
-            'taskID' => $this->taskID,
-            'name' => $this->name,
-            'projectID' => $this->projectID,
-            'assigned_user_id' => $this->assignedUserID,
-            'boardID' => $this->boardID,
-            'startDate' => $this->startDate,
-            'endDate' => $this->endDate,
+            'task_id' => $this->taskID,
+            'task_name' => $this->name,
+            'project_id' => $this->projectID,
+            'assigned_user' => $this->assignedUser, // Sửa ở đây
+            'board_id' => $this->boardID,
+            'start_date' => $this->startDate ? $this->startDate->format('Y-m-d') : null,
+            'end_date' => $this->endDate ? $this->endDate->format('Y-m-d') : null,
             'status' => $this->status
         );
     }

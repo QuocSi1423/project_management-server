@@ -5,21 +5,21 @@ namespace Entity;
 use JsonSerializable;
 
 class WorkspaceMembership implements JsonSerializable {
-    private ?UserInformation $user;
+    private ?Member $user;
     private ?Workspace $workspace;
     private ?int $role;
 
-    public function __construct(?UserInformation $user, ?Workspace $workspace, ?int $role) {
+    public function __construct(?Member $user, ?Workspace $workspace, ?int $role) {
         $this->user = $user;
         $this->workspace = $workspace;
         $this->role = $role;
     }
 
-    public function getUser(): ?UserInformation {
+    public function getUser(): ?Member {
         return $this->user;
     }
 
-    public function setUser(?UserInformation $user): void {
+    public function setUser(?member $user): void {
         $this->user = $user;
     }
 
