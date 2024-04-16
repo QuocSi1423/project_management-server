@@ -51,7 +51,7 @@ class Board implements JsonSerializable{
       $this->project_id = $project_id;
   }
 
-  public function getPreviousBoardId(): string {
+  public function getPreviousBoardId(): ?string {
       return $this->previous_board_id;
   }
 

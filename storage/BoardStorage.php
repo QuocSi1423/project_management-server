@@ -51,6 +51,17 @@ class BoardStorage implements IBoardStorage
 
   public function updateBoard(Board $board): void
   {
+    try{
+      $query = 'update boards set board_name = ? where board_id = ?';
+      $stmt = $this->db->getConn()->prepare($query);
+      $stmt->execute([$board->getName(), $board->getBoardId()]);
+    }catch(PDOException $e){
+      if ($e->getCode() == 23000) {
+        throw new Exception($e->getMessage(), 404);
+      } else {
+        throw new Exception($e->getMessage(), 500);
+      }
+    }
   }
 
   private function updatePreviousOfBoardID($var1, $var2)
@@ -74,13 +85,22 @@ class BoardStorage implements IBoardStorage
     }
   }
 
-  public function updatePreviuosBoard(String $boardID, ?String $preID, ?String $newpreviousBoardID): void
+  public function updatePreviuosBoard(String $boardID, ?String $preID, ?String $newpreviousBoardID, ?String $project_id): void
   {
     try {
       $this->db->getConn()->beginTransaction();
 
-      $this->updatePreviousOfBoardID($boardID, $preID); //nối board ở phía sau của board được chỉ định vào board ở phía trước của nó. Cách TH preID(phía sau) = PreID(cần thay đổi)
-      $this->updatePreviousOfBoardID($newpreviousBoardID, $boardID); // tìm board có preID = newPreID. sau đó đặt board tìm được phía sau board chỉ định. Cách TH preID(tìm được) = ID(cần thay đổi)
+      // $this->updatePreviousOfBoardID($boardID, $preID); //nối board ở phía sau của board được chỉ định vào board ở phía trước của nó. Cách TH preID(phía sau) = PreID(cần thay đổi)
+      // $this->updatePreviousOfBoardID($newpreviousBoardID, $boardID); // tìm board có preID = newPreID. sau đó đặt board tìm được phía sau board chỉ định. Cách TH preID(tìm được) = ID(cần thay đổi)
+
+      $query = "UPDATE boards SET previous_board_id = ? WHERE (previous_board_id = ?) and project_id = ?"; //thay đổi preID(cần đổi) = newPreID
+      $stmt = $this->db->getConn()->prepare($query);
+      $stmt->execute([$preID, $boardID, $project_id]);
+
+      $condition = $newpreviousBoardID == null ? "or previous_board_id is null":"";
+      $query = "UPDATE boards SET previous_board_id = ? WHERE (previous_board_id = ? $condition) and project_id = ?"; //thay đổi preID(cần đổi) = newPreID
+      $stmt = $this->db->getConn()->prepare($query);
+      $stmt->execute([$boardID, $newpreviousBoardID, $project_id]);
 
       $query = "UPDATE boards SET previous_board_id = ? WHERE board_id = ?"; //thay đổi preID(cần đổi) = newPreID
       $stmt = $this->db->getConn()->prepare($query);
@@ -143,6 +163,7 @@ class BoardStorage implements IBoardStorage
       }
       $this->db->getConn()->commit();
     } catch (Exception $e) {
+      $this->db->getConn()->rollBack();
       if ($e->getCode() == 404) {
         throw new Exception($e->getMessage(), 404);
       } else {

@@ -268,8 +268,16 @@ $app->group("/v1/workspaces", function ($workspace) {
 
           $board->group("/{board_id}", function ($one_board) {
             $one_board->put("", function (Request $req, Response $res) {
+              global $boardController;
+              return $boardController->updateBoard($req, $res);
+            });
+            $one_board->put("/workflow", function (Request $req, Response $res){
+              global $boardController;
+              return $boardController->changeWorkflow($req, $res);
             });
             $one_board->delete("", function (Request $req, Response $res) {
+              global $boardController;
+              return $boardController->deleteBoard($req, $res);
             });
           });
         });
