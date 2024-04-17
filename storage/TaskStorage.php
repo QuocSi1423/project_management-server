@@ -52,16 +52,42 @@ class TaskStorage implements ITaskStorage
   public function updateTask(Task $task): void
   {
     try {
-      $query = 'UPDATE tasks SET task_name = ?, description = ? WHERE task_id = ?;';
+      $query = "UPDATE tasks
+              SET task_name = COALESCE(?, task_name),
+                  description = COALESCE(?, description),
+                  project_id = COALESCE(?, project_id),
+                  assigned_user_id = COALESCE(?, assigned_user_id),
+                  board_id = COALESCE(?, board_id),
+                  start_date = COALESCE(?, start_date),
+                  due_date = COALESCE(?, due_date),
+                  status = COALESCE(?, status)
+              WHERE task_id = ?
+          ";
+
       $stmt = $this->db->getConn()->prepare($query);
+
       $stmt->bindValue(1, $task->getName(), PDO::PARAM_STR);
       $stmt->bindValue(2, $task->getDescription(), PDO::PARAM_STR);
-      $stmt->bindValue(3, $task->getTaskID(), PDO::PARAM_INT);
-      $stmt->execute();
-      $result = $stmt->rowCount();
-      if ($result == 0) {
-        throw new Exception("No Task Found", 404);
+      $stmt->bindValue(3, $task->getProjectID(), PDO::PARAM_STR);
+      $stmt->bindValue(4, $task->getAssignedUser(), PDO::PARAM_STR);
+      $stmt->bindValue(5, $task->getBoardID(), PDO::PARAM_STR);
+
+      $startDate = $task->getStartDate();
+      if ($startDate !== null) {
+        $startDate = $startDate->format('y-m-d');
       }
+      $stmt->bindValue(6, $startDate, PDO::PARAM_STR);
+
+      $endDate = $task->getEndDate();
+      if ($endDate !== null) {
+        $endDate = $endDate->format('y-m-d');
+      }
+      $stmt->bindValue(7, $endDate, PDO::PARAM_STR);
+
+      $stmt->bindValue(8, $task->getStatus(), PDO::PARAM_INT);
+      $stmt->bindValue(9, $task->getTaskID(), PDO::PARAM_INT);
+
+      $stmt->execute();
     } catch (PDOException $e) {
       throw new Exception($e->getMessage(), 500);
     }

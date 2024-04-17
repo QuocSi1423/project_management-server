@@ -212,6 +212,8 @@ $app->group("/v1/workspaces", function ($workspace) {
             $one_task->get("", function (Request $req, Response $res) {
             });
             $one_task->put("", function (Request $req, Response $res) {
+              global $taskController;
+              return $taskController->updateTask($req, $res);
             });
             $one_task->delete("", function (Request $req, Response $res) {
             });

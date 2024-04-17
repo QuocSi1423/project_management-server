@@ -68,37 +68,51 @@ class TaskController
   }
   public function updateTask(Request $req, Response $res)
   {
-
     try {
       $body = $req->getBody()->getContents();
       $data = json_decode($body);
-      if (!isset($requestBody['task_id'])) {
-        throw new Exception("Task ID is required", 400);
-      }
-      if (!isset($requestBody['task_name'])) {
-        throw new Exception("Name is required", 400);
-      }
-      $taskname = $data['task_name'];
-      $description = $data['description'];
-      $projectID = $req->getAttribute('project_id');
-      $taskID = $req->getAttribute('task_id');
 
-      $task = new Task($taskID, $taskname, $description, $projectID, null, null, null);
-      $this->service->updateTask($task);
-      $res = $res->withStatus(200);
-      $res->getBody()->write(json_encode("update successfully"));
-      return $res;
-    } catch (Exception $e) {
-      if ($e->getCode() == 404) {
-        $res = $res->withStatus(404);
-        $res->getBody()->write($e->getMessage());
+      if ($data && !empty((array) $data)) {
+        // Kiểm tra và gán giá trị null cho các trường không được chỉ định
+        $data->task_name = $data->task_name ?? null;
+        $data->description = $data->description ?? null;
+        $data->project_id = $data->project_id ?? null;
+        $data->assigned_user = $data->assigned_user ?? null;
+        $data->board_id = $data->board_id ?? null;
+        $data->start_date = isset($data->start_date) ? new DateTime($data->start_date) : null;
+        $data->end_date = isset($data->end_date) ? new DateTime($data->end_date) : null;
+        $data->status = $data->status ?? null;
+        // Tạo một đối tượng Task từ dữ liệu nhận được
+        $task = new Task(
+          $data->task_id,
+          $data->task_name,
+          $data->description,
+          $data->project_id,
+          $data->assigned_user,
+          $data->board_id,
+          $data->start_date,
+          $data->end_date,
+          $data->status
+        );
+
+        $this->service->updateTask($task);
+
+        // Trả về kết quả thành công
+        $res = $res->withStatus(200);
+        $res->getBody()->write(json_encode( array("message" => "Update successfully", "task"=>$task)));
       } else {
-        $res = $res->withStatus(500);
-        $res->getBody()->write($e->getMessage());
+        throw new Exception("Empty request data", 400);
       }
-      return $res;
+    } catch (Exception $e) {
+      $status = $e->getCode() ?: 500;
+      $res = $res->withStatus($status);
+      $res->getBody()->write(json_encode(["error" => $e->getMessage()]));
     }
+
+    return $res;
   }
+
+
   public function updateStatus(Request $req, Response $res)
   {
     try {
